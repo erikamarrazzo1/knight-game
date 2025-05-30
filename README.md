@@ -1,1 +1,1 @@
-# knight-game
+# position-game

@@ -1,8 +1,5 @@
 package it.knight.game;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import it.knight.game.model.PositionResult;
 import it.knight.game.service.BoardService;
 import it.knight.game.service.CommandService;
 import it.knight.game.service.GameService;

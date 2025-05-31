@@ -9,9 +9,9 @@ import com.google.gson.Gson;
 import it.knight.game.model.Coordinates;
 import it.knight.game.utils.Utils;
 
-import static it.knight.game.constant.ClientAPIReferences.GET_BOARD_API;
-
 public class BoardService {
+
+    private final static String BOARD_API = System.getenv("BOARD_API");
 
     private Board getBoardData(String uri) throws IOException, InterruptedException {
         HttpResponse<String> response = Utils.getAPIResponse(uri);
@@ -23,7 +23,7 @@ public class BoardService {
         int[][] boardInitialized;
 
         try {
-            Board boardData = getBoardData(GET_BOARD_API);
+            Board boardData = getBoardData(BOARD_API);
             System.out.println("Initializing board with " + boardData.getHeight() +" rows and " + boardData.getWidth() + " columns...");
             boardInitialized = new int[boardData.getHeight()][boardData.getWidth()];
 

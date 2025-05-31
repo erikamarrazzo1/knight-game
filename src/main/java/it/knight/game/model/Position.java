@@ -35,7 +35,8 @@ public class Position {
         this.direction = direction;
     }
 
-    public void convertCoordinatesToCartesian(int matrixLength) {
-        Utils.convertCoordinatesToCartesian(matrixLength, this.x, this.y);
+    public void convertCoordinateFromCartesian(int matrixLength) {
+        this.x = this.y;
+        this.y = matrixLength - 1 - this.x;
     }
 }

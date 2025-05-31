@@ -20,10 +20,17 @@ public class Utils {
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    public static Coordinates convertCoordinatesToCartesian(int matrixLength, int row, int col) {
+    public static Coordinates convertCoordinatesFromCartesian(int matrixLength, int row, int col) {
         Coordinates coordinates = new Coordinates();
         coordinates.setX(matrixLength - 1 - col);
         coordinates.setY(row);
+        return coordinates;
+    }
+
+    public static Coordinates convertCoordinatesToCartesian(int matrixLength, int row, int col) {
+        Coordinates coordinates = new Coordinates();
+        coordinates.setX(col);
+        coordinates.setY(matrixLength - 1 - row);
         return coordinates;
     }
 

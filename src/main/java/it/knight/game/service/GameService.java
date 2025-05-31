@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import it.knight.game.exception.InvalidStartPosition;
 import it.knight.game.exception.OutOfBoardException;
+import it.knight.game.model.Coordinates;
 import it.knight.game.model.Position;
 import it.knight.game.model.PositionResult;
 import it.knight.game.model.enums.ResultStatus;
@@ -39,7 +40,11 @@ public class GameService {
                 position = commandService.executePlayCommand(boardGame, position, command);
             }
 
-            position.convertCoordinatesToCartesian(boardGame.length);
+            Coordinates coordinates =
+                    Utils.convertCoordinatesToCartesian(boardGame.length, position.getX(), position.getY());
+            position.setX(coordinates.getX());
+            position.setY(coordinates.getY());
+
             positionResult.setPosition(position);
             positionResult.setStatus(ResultStatus.SUCCESS);
 

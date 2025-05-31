@@ -13,9 +13,9 @@ import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.util.List;
 
-import static it.knight.game.constant.ClientAPIReferences.GET_COMMANDS_API;
-
 public class CommandService {
+
+    private final static String COMMANDS_API = System.getenv("COMMANDS_API");
 
     private CommandResponse getCommands(String uri) throws IOException, InterruptedException {
         HttpResponse<String> response = Utils.getAPIResponse(uri);
@@ -25,7 +25,7 @@ public class CommandService {
 
     public List<String> getCommandsToExecute() {
         try {
-            CommandResponse commandResponse = getCommands(GET_COMMANDS_API);
+            CommandResponse commandResponse = getCommands(COMMANDS_API);
             return commandResponse.commands;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -35,7 +35,8 @@ public class CommandService {
     private Position moveUsingDirection(int[][] board,
                                         Position currentPosition,
                                         int increment) {
-        Position newPosition = new Position();
+
+        Position newPosition;
 
         switch (currentPosition.getDirection()) {
             case NORTH -> {
@@ -109,7 +110,7 @@ public class CommandService {
                 Direction startDirection = Direction.valueOf(startPositionData[2]);
 
                 Coordinates coordinatesConverted =
-                        Utils.convertCoordinatesToCartesian(board.length, startX, startY);
+                        Utils.convertCoordinatesFromCartesian(board.length, startX, startY);
 
                 if (board[coordinatesConverted.getX()][coordinatesConverted.getY()] == 1) {
                     throw new InvalidStartPosition("The start position is on an obstacle.");

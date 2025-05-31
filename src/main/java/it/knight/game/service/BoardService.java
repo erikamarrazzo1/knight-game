@@ -11,9 +11,9 @@ import it.knight.game.utils.Utils;
 
 public class BoardService {
 
-    private final static String BOARD_API = System.getenv("BOARD_API");
+    private final static String BOARD_API = System.getenv().getOrDefault("BOARD_API", "http://localhost:8080");
 
-    private Board getBoardData(String uri) throws IOException, InterruptedException {
+    private Board fetchBoardData(String uri) throws IOException, InterruptedException {
         HttpResponse<String> response = Utils.getAPIResponse(uri);
         Gson gson = new Gson();
         return gson.fromJson(response.body(), Board.class);
@@ -23,7 +23,7 @@ public class BoardService {
         int[][] boardInitialized;
 
         try {
-            Board boardData = getBoardData(BOARD_API);
+            Board boardData = fetchBoardData(BOARD_API);
             System.out.println("Initializing board with " + boardData.getHeight() +" rows and " + boardData.getWidth() + " columns...");
             boardInitialized = new int[boardData.getHeight()][boardData.getWidth()];
 
@@ -31,13 +31,13 @@ public class BoardService {
                 Coordinates obstacle = boardData.getObstacles().get(i);
 
                 // convert coordinates to put the obstacle follow (0,0) bottom left
-                int xObstacleInTheBoard = boardData.getHeight() - 1 - obstacle.getY();
-                int yObstacleInTheBoard = obstacle.getX();
+                Coordinates coordinatesConverted =
+                        Utils.convertCoordinatesFromCartesian(boardData.getHeight(), obstacle.getX(), obstacle.getY());
 
                 // put the obstacle
-                if (xObstacleInTheBoard >= 0 && xObstacleInTheBoard < boardData.getHeight() &&
-                        yObstacleInTheBoard >= 0 && yObstacleInTheBoard < boardData.getWidth()) {
-                    boardInitialized[xObstacleInTheBoard][yObstacleInTheBoard] = 1;
+                if (coordinatesConverted.getX() >= 0 && coordinatesConverted.getX() < boardData.getHeight() &&
+                        coordinatesConverted.getY() >= 0 && coordinatesConverted.getY() < boardData.getWidth()) {
+                    boardInitialized[coordinatesConverted.getX()][coordinatesConverted.getY()] = 1;
                 }
             }
 

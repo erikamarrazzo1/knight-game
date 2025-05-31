@@ -15,156 +15,91 @@ import java.util.List;
 
 public class CommandService {
 
-    private final static String COMMANDS_API = System.getenv("COMMANDS_API");
-
-    private CommandResponse getCommands(String uri) throws IOException, InterruptedException {
-        HttpResponse<String> response = Utils.getAPIResponse(uri);
-        Gson gson = new Gson();
-        return gson.fromJson(response.body(), CommandResponse.class);
-    }
+    public static final String COMMANDS_API = System.getenv().getOrDefault("COMMANDS_API", "http://localhost:8080");
 
     public List<String> getCommandsToExecute() {
         try {
-            CommandResponse commandResponse = getCommands(COMMANDS_API);
-            return commandResponse.commands;
+            return fetchCommands(COMMANDS_API).commands();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to fetch commands", e);
         }
     }
 
-    private Position moveUsingDirection(int[][] board,
-                                        Position currentPosition,
-                                        int increment) {
+    public Position executePlayCommand(int[][] board, Position currentPosition, String command) {
+        String[] commandParts = command.split(" ");
+        Command commandToExecute = Command.valueOf(commandParts[0]);
 
-        Position newPosition;
-
-        switch (currentPosition.getDirection()) {
-            case NORTH -> {
-                for (int i = 1; i <= increment; i++) {
-                    int newX = currentPosition.getX() - 1;
-                    int newY = currentPosition.getY();
-                    newPosition = getNewPosition(board, currentPosition, newX, newY);
-
-                    if (newPosition != null) {
-                        currentPosition = newPosition;
-                    } else break;
-                }
-            }
-            case SOUTH -> {
-                for (int i = 1; i <= increment; i++) {
-                    int newX = currentPosition.getX() + 1;
-                    int newY = currentPosition.getY();
-                    newPosition = getNewPosition(board, currentPosition, newX, newY);
-
-                    if (newPosition != null) {
-                        currentPosition = newPosition;
-                    } else break;
-                }
-            }
-            case EAST -> {
-                for (int i = 1; i <= increment; i++) {
-                    int newX = currentPosition.getX();
-                    int newY = currentPosition.getY() + 1;
-                    newPosition = getNewPosition(board, currentPosition, newX, newY);
-
-                    if (newPosition != null) {
-                        currentPosition = newPosition;
-                    } else break;
-                }
-            }
-            case WEST -> {
-                for (int i = 1; i <= increment; i++) {
-                    int newX = currentPosition.getX();
-                    int newY = currentPosition.getY() - 1;
-                    newPosition = getNewPosition(board, currentPosition, newX, newY);
-
-                    if (newPosition != null) {
-                        currentPosition = newPosition;
-                    } else break;
-                }
-            }
+        return switch (commandToExecute) {
+            case START -> handleStartCommand(board, commandParts[1]);
+            case ROTATE -> handleRotateCommand(currentPosition, commandParts[1]);
+            case MOVE -> handleMoveCommand(board, currentPosition, Integer.parseInt(commandParts[1]));
         };
+    }
+
+    private CommandResponse fetchCommands(String uri) throws IOException, InterruptedException {
+        HttpResponse<String> response = Utils.getAPIResponse(uri);
+        return new Gson().fromJson(response.body(), CommandResponse.class);
+    }
+
+    private Position handleStartCommand(int[][] board, String data) {
+        String[] parts = data.split(",");
+        int startX = Integer.parseInt(parts[0]);
+        int startY = Integer.parseInt(parts[1]);
+        Direction direction = Direction.valueOf(parts[2]);
+
+        validateStartPosition(board, startX, startY);
+
+        Coordinates coordinatesConverted = Utils.convertCoordinatesFromCartesian(board.length, startX, startY);
+        if (board[coordinatesConverted.getX()][coordinatesConverted.getY()] == 1) {
+            throw new InvalidStartPosition("The start position is on an obstacle.");
+        }
+
+        board[coordinatesConverted.getX()][coordinatesConverted.getY()] = 2;
+        return new Position(coordinatesConverted.getX(), coordinatesConverted.getY(), direction);
+    }
+
+    private void validateStartPosition(int[][] board, int x, int y) {
+        if (x < 0 || x >= board[0].length || y < 0 || y >= board.length) {
+            throw new InvalidStartPosition("The start position is out of the board.");
+        }
+    }
+
+    private Position handleRotateCommand(Position currentPosition, String direction) {
+        Direction newDirection = Direction.valueOf(direction);
+        return new Position(currentPosition.getX(), currentPosition.getY(), newDirection);
+    }
+
+    private Position handleMoveCommand(int[][] board, Position currentPosition, int steps) {
+        for (int i = 0; i < steps; i++) {
+            int newX = currentPosition.getX();
+            int newY = currentPosition.getY();
+
+            switch (currentPosition.getDirection()) {
+                case NORTH -> newX--;
+                case SOUTH -> newX++;
+                case EAST -> newY++;
+                case WEST -> newY--;
+            }
+
+            if (!isValidMove(board, newX, newY)) {
+                break;
+            }
+
+            board[newX][newY] = 2;
+            currentPosition.setX(newX);
+            currentPosition.setY(newY);
+        }
 
         return currentPosition;
     }
 
-    public Position executePlayCommand(int[][] board,
-                                       Position currentPosition,
-                                       String command) {
-        Position newPosition = new Position();
-
-        String[] commandSplit = command.split(" ");
-        Command commandToExecute = Command.valueOf(commandSplit[0]);
-
-        switch (commandToExecute) {
-            case START:
-                String[] startPositionData = commandSplit[1].split(",");
-                int startX = Integer.parseInt(startPositionData[0]);
-                int startY = Integer.parseInt(startPositionData[1]);
-
-                if (startX < 0 || startX > board[0].length ||
-                        startY < 0 || startY > board.length) {
-                    throw new InvalidStartPosition("The start position is out of the board.");
-                }
-
-                Direction startDirection = Direction.valueOf(startPositionData[2]);
-
-                Coordinates coordinatesConverted =
-                        Utils.convertCoordinatesFromCartesian(board.length, startX, startY);
-
-                if (board[coordinatesConverted.getX()][coordinatesConverted.getY()] == 1) {
-                    throw new InvalidStartPosition("The start position is on an obstacle.");
-                }
-
-                board[coordinatesConverted.getX()][coordinatesConverted.getY()] = 2;
-                newPosition.setX(coordinatesConverted.getX());
-                newPosition.setY(coordinatesConverted.getY());
-                newPosition.setDirection(startDirection);
-
-                break;
-            case ROTATE:
-
-                Direction newDirection = Direction.valueOf(commandSplit[1]);
-                newPosition.setX(currentPosition.getX());
-                newPosition.setY(currentPosition.getY());
-                newPosition.setDirection(newDirection);
-
-                break;
-            case MOVE:
-
-                int increment = Integer.parseInt(commandSplit[1]);
-                newPosition = moveUsingDirection(board, currentPosition, increment);
-
-                break;
-            default: throw new RuntimeException("Command not supported.");
-        }
-
-        return newPosition;
-    }
-
-    private Position getNewPosition(int[][] board,
-                                    Position position,
-                                    int newX,
-                                    int newY) {
+    private boolean isValidMove(int[][] board, int x, int y) {
         try {
-            if (board[newX][newY] == 1) {
-                return null;
-            } else {
-                board[newX][newY] = 2;
-                position.setX(newX);
-                position.setY(newY);
-            }
-        } catch (RuntimeException e) {
-            if (e instanceof ArrayIndexOutOfBoundsException) {
-                throw new OutOfBoardException("The knight is out of the board.");
-            }
-            throw new RuntimeException(e);
+            return board[x][y] != 1;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new OutOfBoardException("The knight is out of the board.");
         }
-
-        return position;
     }
 
-    record CommandResponse(List<String> commands) {}
-
+    private record CommandResponse(List<String> commands) {}
 }
-

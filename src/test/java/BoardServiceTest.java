@@ -44,8 +44,18 @@ class BoardServiceTest {
         when(mockResponse.body()).thenReturn(jsonResponse);
 
         try (MockedStatic<Utils> mockedStatic = Mockito.mockStatic(Utils.class)) {
-            mockedStatic.when(() -> Utils.getAPIResponse(anyString()))
-                    .thenReturn(mockResponse);
+            mockedStatic.when(() -> Utils.getAPIResponse(anyString())).thenReturn(mockResponse);
+
+            mockedStatic.when(() -> Utils.convertCoordinatesFromCartesian(anyInt(), anyInt(), anyInt()))
+                    .thenAnswer(invocation -> {
+                        int height = invocation.getArgument(0);
+                        int x = invocation.getArgument(1);
+                        int y = invocation.getArgument(2);
+                        Coordinates coordinates = new Coordinates();
+                        coordinates.setX(height - 1 - y);
+                        coordinates.setY(x);
+                        return coordinates;
+                    });
 
             int[][] result = boardService.initializeBoard();
 
@@ -54,6 +64,7 @@ class BoardServiceTest {
 
             assertEquals(1, result[3][1]);
             assertEquals(1, result[0][0]);
+
             assertEquals(0, result[2][2]);
         }
     }
@@ -67,27 +78,46 @@ class BoardServiceTest {
         Coordinates coordinate1 = new Coordinates();
         coordinate1.setX(1);
         coordinate1.setY(1);
+
         Coordinates coordinate2 = new Coordinates();
-        coordinate1.setX(5);
-        coordinate1.setY(5);
+        coordinate2.setX(5);
+        coordinate2.setY(5);
+
         Coordinates coordinate3 = new Coordinates();
-        coordinate1.setX(-1);
-        coordinate1.setY(2);
+        coordinate3.setX(-1);
+        coordinate3.setY(2);
+
         board.setObstacles(List.of(coordinate1, coordinate2, coordinate3));
 
         String boardJson = new Gson().toJson(board);
+
+        HttpResponse<String> mockResponse = mock(HttpResponse.class);
         when(mockResponse.body()).thenReturn(boardJson);
 
-        int[][] result = boardService.initializeBoard();
+        try (MockedStatic<Utils> utilsMock = Mockito.mockStatic(Utils.class)) {
+            utilsMock.when(() -> Utils.getAPIResponse(anyString())).thenReturn(mockResponse);
+            utilsMock.when(() -> Utils.convertCoordinatesFromCartesian(anyInt(), anyInt(), anyInt()))
+                    .thenAnswer(invocation -> {
+                        int height = invocation.getArgument(0);
+                        int x = invocation.getArgument(1);
+                        int y = invocation.getArgument(2);
+                        Coordinates coordinates = new Coordinates();
+                        coordinates.setX(height - 1 - y);
+                        coordinates.setY(x);
+                        return coordinates;
+                    });
 
-        assertEquals(1, result[1][1]);
-        assertDoesNotThrow(() -> boardService.initializeBoard());
+            int[][] result = boardService.initializeBoard();
+
+            assertEquals(1, result[1][1]);
+            assertDoesNotThrow(() -> boardService.initializeBoard());
+        }
     }
 
     @Test
     void test_initializeBoard_httpsCall_fail() throws Exception {
         try (MockedStatic<Utils> mockedStatic = Mockito.mockStatic(Utils.class)) {
-            mockedStatic.when(() -> Utils.getAPIResponse(anyString()))
+            mockedStatic.when(() -> Utils.getAPIResponse(nullable(String.class)))
                     .thenThrow(new IOException("Connection error."));
 
             RuntimeException exception = assertThrows(RuntimeException.class, () -> boardService.initializeBoard());

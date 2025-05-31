@@ -53,8 +53,8 @@ class GameServiceTest {
         assertNotNull(result);
         assertEquals(ResultStatus.SUCCESS, result.getStatus());
         assertNotNull(result.getPosition());
-        assertEquals(2, result.getPosition().getX());
-        assertEquals(0, result.getPosition().getY());
+        assertEquals(0, result.getPosition().getX());
+        assertEquals(2, result.getPosition().getY());
     }
 
     @Test

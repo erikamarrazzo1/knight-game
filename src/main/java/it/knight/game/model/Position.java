@@ -1,6 +1,7 @@
-package it.demo.interview.model;
+package it.knight.game.model;
 
-import it.demo.interview.model.enums.Direction;
+import it.knight.game.model.enums.Direction;
+import it.knight.game.utils.Utils;
 
 public class Position {
 
@@ -9,14 +10,6 @@ public class Position {
     private Direction direction;
 
     public Position() {}
-
-    public Position(int x,
-                    int y,
-                    Direction direction) {
-        this.x = x;
-        this.y = y;
-        this.direction = direction;
-    }
 
     public int getX() {
         return x;
@@ -40,5 +33,9 @@ public class Position {
 
     public void setDirection(Direction direction) {
         this.direction = direction;
+    }
+
+    public void convertCoordinatesToCartesian(int matrixLength) {
+        Utils.convertCoordinatesToCartesian(matrixLength, this.x, this.y);
     }
 }

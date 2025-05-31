@@ -1,18 +1,22 @@
-package it.demo.interview.model;
+package it.knight.game.model;
 
-import it.demo.interview.model.enums.ResultStatus;
+import it.knight.game.model.enums.ResultStatus;
 
 public class PositionResult {
 
     private Position position;
     private ResultStatus status;
 
-    public Position getPosition() {
-        return position;
+    public PositionResult(ResultStatus status) {
+        this.status = status;
     }
 
     public void setPosition(Position position) {
         this.position = position;
+    }
+
+    public Position getPosition() {
+        return position;
     }
 
     public ResultStatus getStatus() {
@@ -22,4 +26,5 @@ public class PositionResult {
     public void setStatus(ResultStatus status) {
         this.status = status;
     }
+
 }

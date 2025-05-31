@@ -1,4 +1,4 @@
-package it.demo.interview.model.enums;
+package it.knight.game.model.enums;
 
 public enum Direction {
     NORTH,

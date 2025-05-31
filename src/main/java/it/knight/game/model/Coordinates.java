@@ -1,7 +1,6 @@
-package it.demo.interview.model;
+package it.knight.game.model;
 
-public class Obstacle {
-
+public class Coordinates {
     private int x;
     private int y;
 

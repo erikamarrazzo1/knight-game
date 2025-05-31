@@ -1,4 +1,4 @@
-package it.demo.interview.constant;
+package it.knight.game.constant;
 
 public class ClientAPIReferences {
 

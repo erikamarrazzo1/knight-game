@@ -62,10 +62,13 @@ public class GameService {
 
         } catch (RuntimeException e) {
             if (e instanceof OutOfBoardException) {
+                logger.error(e.getMessage());
                 positionResult.setStatus(ResultStatus.OUT_OF_THE_BOARD);
             } else if (e instanceof InvalidStartPosition) {
+                logger.error(e.getMessage());
                 positionResult.setStatus(ResultStatus.INVALID_START_POSITION);
             } else {
+                logger.error(e.getMessage());
                 positionResult.setStatus(ResultStatus.GENERIC_ERROR);
             }
         }

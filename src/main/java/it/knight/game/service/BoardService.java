@@ -8,8 +8,12 @@ import java.net.http.HttpResponse;
 import com.google.gson.Gson;
 import it.knight.game.model.Coordinates;
 import it.knight.game.utils.Utils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class BoardService {
+
+    private static final Logger logger = LogManager.getLogger(BoardService.class);
 
     private final static String BOARD_API = System.getenv().getOrDefault("BOARD_API", "http://localhost:8080");
 
@@ -24,7 +28,8 @@ public class BoardService {
 
         try {
             Board boardData = fetchBoardData(BOARD_API);
-            System.out.println("Initializing board with " + boardData.getHeight() +" rows and " + boardData.getWidth() + " columns...");
+            logger.debug("Initializing board with {} rows and {} colums...", boardData.getHeight(), boardData.getWidth());
+
             boardInitialized = new int[boardData.getHeight()][boardData.getWidth()];
 
             for (int i=0; i < boardData.getObstacles().size(); i++) {

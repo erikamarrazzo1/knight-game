@@ -9,10 +9,15 @@ import it.knight.game.model.Position;
 import it.knight.game.model.PositionResult;
 import it.knight.game.model.enums.ResultStatus;
 import it.knight.game.utils.Utils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class GameService {
+
+    private static final Logger logger = LogManager.getLogger(GameService.class);
 
     private final BoardService boardService;
     private final CommandService commandService;
@@ -28,15 +33,17 @@ public class GameService {
         try {
             int[][] boardGame = boardService.initializeBoard();
 
-            // used for debug - initial board
             // 0 is a walkable cell
             // 1 is a cell with an obstacle
-            Utils.printBoard(boardGame);
+            logger.debug("Board initialized with 0 as walkable cells and 1 as obstacle cells:");
+            Arrays.stream(boardGame)
+                    .map(Arrays::toString)
+                    .forEach(logger::debug);
 
             List<String> listCommandsToExecute = commandService.getCommandsToExecute();
             Position position = new Position();
             for (String command : listCommandsToExecute) {
-                System.out.println("Run the command: " + command);
+                logger.debug("Executing command: {}", command);
                 position = commandService.executePlayCommand(boardGame, position, command);
             }
 
@@ -48,11 +55,10 @@ public class GameService {
             positionResult.setPosition(position);
             positionResult.setStatus(ResultStatus.SUCCESS);
 
-            // used for debug - board with knight path
-            // 0 is a walkable cell
-            // 1 is a cell with an obstacle
-            // 2 is a cell walked by knight
-            Utils.printBoard(boardGame);
+            logger.debug("Board at the end of the game, with 2 indicating cells visited by the knight:");
+            Arrays.stream(boardGame)
+                    .map(Arrays::toString)
+                    .forEach(logger::debug);
 
         } catch (RuntimeException e) {
             if (e instanceof OutOfBoardException) {
